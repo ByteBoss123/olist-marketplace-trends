@@ -21,7 +21,7 @@ capacity and manage sellers before peak periods.
 - Built a warehouse of **99,441 orders and 112,650 order items from 3,095 sellers** with **0 duplicate keys, 0 orphaned keys and 0 rows lost** (13 of 13 integrity tests pass).
 - Showed late deliveries averaged **8.1%** but spiked to **14.3%** in the peak-volume month (Nov 2017, 7,288 orders) and **21.4%** in Mar 2018.
 - Linked late delivery to satisfaction: late orders average a **2.54** review vs **4.28** on time, with **6.9x** more 1-star reviews (46.7% vs 6.8%).
-- Category view: health & beauty leads item revenue ($1.26M); office furniture has the lowest average review (3.48) among categories with 500+ orders.
+- Category view across 74 product categories: health & beauty leads item revenue ($1.26M); office furniture has the lowest average review among the 27 major categories (500+ orders): 3.48 vs a 4.02 marketplace average.
 - Independent pandas checks: **0 mismatches** on the warehouse and the trend analysis.
 
 ## Definitions
