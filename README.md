@@ -1,6 +1,6 @@
 # Olist Seller Performance & Fulfillment KPI Warehouse
 
-**Stack:** SQL (DuckDB), Python (pandas)
+**Stack:** SQL (Amazon Redshift, DuckDB), Python (pandas)
 
 ## Business Problem
 A marketplace lives on seller reliability. When deliveries slip, customers leave bad reviews, and bad
@@ -23,6 +23,26 @@ capacity and manage sellers before peak periods.
 - Linked late delivery to satisfaction: late orders average a **2.54** review vs **4.28** on time, with **6.9x** more 1-star reviews (46.7% vs 6.8%).
 - Category view across 74 product categories: health & beauty leads item revenue ($1.26M); office furniture has the lowest average review among the 27 major categories (500+ orders): 3.48 vs a 4.02 marketplace average.
 - Independent pandas checks: **0 mismatches** on the warehouse and the trend analysis.
+
+## Amazon Redshift deployment (verified 2026-09-28)
+The same Olist star schema runs in **Amazon Redshift Serverless** (us-east-1, schema `vendorpulse`, loaded 2026-08-11
+via S3 COPY with an IAM role, from the Vendor-Pulse project). Verified today through the Redshift Data API:
+
+| Table | Rows |
+|---|---|
+| dim_customer | 99,441 |
+| dim_seller | 3,095 |
+| dim_product | 32,951 |
+| dim_date | 774 |
+| fact_orders | 99,441 |
+| fact_order_items | 112,650 |
+| fact_payments | 99,440 |
+| fact_reviews | 98,673 |
+| seller_kpis | 3,095 |
+
+`redshift/integrity_checks_redshift.sql` (11 primary-key and foreign-key checks) returns **0 violations** in Redshift.
+Order-item on-time rate in Redshift: 101,481 of 112,650 items = **90.09%** (items on non-delivered orders count as
+not on time). The DuckDB build here reports the delivered-order rate instead (91.9%); both are correct for their definition.
 
 ## Definitions
 - **Delivered order:** `order_status = 'delivered'` with a customer delivery timestamp (96,470 orders).
