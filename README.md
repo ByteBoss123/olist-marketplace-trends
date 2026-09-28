@@ -25,8 +25,8 @@ capacity and manage sellers before peak periods.
 - Independent pandas checks: **0 mismatches** on the warehouse and the trend analysis.
 
 ## Amazon Redshift deployment (verified 2026-09-28)
-The same Olist star schema runs in **Amazon Redshift Serverless** (us-east-1, schema `vendorpulse`, loaded 2026-08-11
-via S3 COPY with an IAM role, from the Vendor-Pulse project). Verified today through the Redshift Data API:
+The same Olist star schema runs in **Amazon Redshift Serverless** (us-east-1, schema `vendorpulse`, tables created
+2026-08-11 by the Vendor-Pulse project). Verified today through the Redshift Data API:
 
 | Table | Rows |
 |---|---|
