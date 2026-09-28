@@ -2,21 +2,23 @@
 
 **Stack:** SQL (DuckDB), Python (pandas)
 
-## Business problem
-A marketplace lives on seller reliability. When deliveries slip, customers leave bad reviews,
-and bad reviews push buyers away from every seller on the platform. Operations needs to know
-**when delivery performance breaks down** and **how much it actually costs in customer satisfaction**,
-so it can staff carriers and set seller expectations before peak periods.
+## Business Problem
+A marketplace lives on seller reliability. When deliveries slip, customers leave bad reviews, and bad
+reviews push buyers away from every seller on the platform. Operations needs to know **when delivery
+performance breaks down** and **how much it costs in customer satisfaction**, so it can plan carrier
+capacity and set seller expectations before peak periods.
 
-## STAR summary
-| | |
-|---|---|
-| **Situation** | Olist, a Brazilian marketplace, publishes 99,441 real orders (Sep 2016 to Oct 2018) from 3,095 sellers, with purchase, delivery and estimated-delivery timestamps plus customer reviews. |
-| **Task** | Track the late-delivery trend month by month and quantify how late delivery relates to review scores, with definitions a stakeholder can audit. |
-| **Action** | Wrote SQL models for delivered orders, a de-duplicated review per order, a monthly late-rate table and a review-by-delivery table; documented every definition; recomputed all results independently in pandas. |
-| **Result** | Late deliveries averaged **8.1%** but spiked to **14.3%** in the peak-volume month (Nov 2017, 7,288 orders) and **21.4%** in Mar 2018. Late orders averaged a **2.54** review score vs **4.28** on time, with **6.9x** more 1-star reviews (46.7% vs 6.8%). Independent check: 0 mismatches. |
+## Steps Taken to Resolve
+1. **Sourced real marketplace data:** 99,441 Olist orders (Sep 2016 to Oct 2018) from 3,095 sellers, with purchase, delivery and estimated-delivery timestamps plus customer reviews.
+2. **Defined auditable metrics:** delivered order, late delivery (after the estimated date), and one review per order (latest answer, duplicates removed).
+3. **Modeled the data in SQL:** a delivered-orders fact table, a de-duplicated review dimension, a monthly late-rate table, and a review-by-delivery-status table.
+4. **Analyzed the trend and the driver:** tracked late-delivery rate by purchase month and compared review scores for late versus on-time orders.
+5. **Verified independently:** recomputed every monthly rate and review statistic in pandas with no shared code.
 
-This is the trend and driver layer of the Seller Performance & Fulfillment KPI Warehouse project.
+## Achievements
+- Showed late deliveries averaged **8.1%** but spiked to **14.3%** in the peak-volume month (Nov 2017, 7,288 orders) and **21.4%** in Mar 2018.
+- Linked late delivery to customer satisfaction: late orders average a **2.54** review score vs **4.28** on time, with **6.9x** more 1-star reviews (46.7% vs 6.8%).
+- Independent pandas check: **0 mismatches** across every monthly rate and review statistic.
 
 ## Definitions
 - **Delivered order:** `order_status = 'delivered'` with a customer delivery timestamp (96,470 orders).
