@@ -1,24 +1,28 @@
-# Olist Marketplace Delivery Trends & Review Drivers
+# Olist Seller Performance & Fulfillment KPI Warehouse
 
 **Stack:** SQL (DuckDB), Python (pandas)
 
 ## Business Problem
 A marketplace lives on seller reliability. When deliveries slip, customers leave bad reviews, and bad
-reviews push buyers away from every seller on the platform. Operations needs to know **when delivery
-performance breaks down** and **how much it costs in customer satisfaction**, so it can plan carrier
-capacity and set seller expectations before peak periods.
+reviews push buyers away from every seller on the platform. Operations and category managers need
+**one trusted place to track seller, category and monthly performance**, and they need to know
+**when delivery breaks down and what it costs in customer satisfaction**, so they can plan carrier
+capacity and manage sellers before peak periods.
 
 ## Steps Taken to Resolve
-1. **Sourced real marketplace data:** 99,441 Olist orders (Sep 2016 to Oct 2018) from 3,095 sellers, with purchase, delivery and estimated-delivery timestamps plus customer reviews.
-2. **Defined auditable metrics:** delivered order, late delivery (after the estimated date), and one review per order (latest answer, duplicates removed).
-3. **Modeled the data in SQL:** a delivered-orders fact table, a de-duplicated review dimension, a monthly late-rate table, and a review-by-delivery-status table.
-4. **Analyzed the trend and the driver:** tracked late-delivery rate by purchase month and compared review scores for late versus on-time orders.
-5. **Verified independently:** recomputed every monthly rate and review statistic in pandas with no shared code.
+1. **Sourced real marketplace data:** the Olist Brazilian e-commerce dataset, 99,441 orders and 112,650 order items (Sep 2016 to Oct 2018) from 3,095 sellers, with delivery timestamps, payments and reviews.
+2. **Modeled a star schema:** four dimensions (customer, seller, product with English category, date) and two facts (order, order item), documented in `sql/warehouse.sql`.
+3. **Enforced data integrity:** 13 automated tests for primary-key uniqueness, foreign-key orphans and row loss versus source (`sql/integrity_tests.sql`); the build fails on any violation.
+4. **Exposed self-service KPIs:** seller, category and monthly KPI views (orders, revenue, on-time rate, average review).
+5. **Analyzed the trend and the driver:** late-delivery rate by purchase month, and review scores for late versus on-time orders.
+6. **Verified independently:** recomputed row counts, orphan checks, the on-time rate, category revenue and reviews, and every monthly rate in pandas with no shared code.
 
 ## Achievements
+- Built a warehouse of **99,441 orders and 112,650 order items from 3,095 sellers** with **0 duplicate keys, 0 orphaned keys and 0 rows lost** (13 of 13 integrity tests pass).
 - Showed late deliveries averaged **8.1%** but spiked to **14.3%** in the peak-volume month (Nov 2017, 7,288 orders) and **21.4%** in Mar 2018.
-- Linked late delivery to customer satisfaction: late orders average a **2.54** review score vs **4.28** on time, with **6.9x** more 1-star reviews (46.7% vs 6.8%).
-- Independent pandas check: **0 mismatches** across every monthly rate and review statistic.
+- Linked late delivery to satisfaction: late orders average a **2.54** review vs **4.28** on time, with **6.9x** more 1-star reviews (46.7% vs 6.8%).
+- Category view: health & beauty leads item revenue ($1.26M); office furniture has the lowest average review (3.48) among categories with 500+ orders.
+- Independent pandas checks: **0 mismatches** on the warehouse and the trend analysis.
 
 ## Definitions
 - **Delivered order:** `order_status = 'delivered'` with a customer delivery timestamp (96,470 orders).
@@ -40,13 +44,17 @@ of review scores in the descriptive sense, not a causal estimate.
 ## Verification
 | Check | Result |
 |---|---|
-| `python run.py` (DuckDB SQL in `sql/marketplace_trends.sql`) | builds 4 tables, writes `results.json` |
+| `python build_warehouse.py` | builds the star schema, runs 13 integrity tests (0 violations), writes `warehouse_results.json` |
+| `python run.py` (DuckDB SQL in `sql/marketplace_trends.sql`) | builds the trend tables, writes `results.json` |
+| `python validation/validate_warehouse.py` | 0 mismatches on row counts, orphans, on-time rate, category revenue and reviews |
 | `python validation/validate.py` (pandas, no shared code with the SQL) | 0 mismatches across every monthly rate and review statistic |
 
 ## Run
 ```bash
 pip install duckdb pandas
 ./fetch_data.sh
+python build_warehouse.py
 python run.py
+python validation/validate_warehouse.py
 python validation/validate.py
 ```
