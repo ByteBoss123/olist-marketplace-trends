@@ -78,3 +78,47 @@ python run.py
 python validation/validate_warehouse.py
 python validation/validate.py
 ```
+
+## Late-delivery risk model and model monitoring (`late_risk.py`)
+
+**Question.** When an order is approved, which orders will miss the delivery date promised to the customer, so
+operations can act (faster shipping, proactive customer message) before the delay happens?
+
+**Data and rules.** 96,456 delivered orders. Features known at approval time only: seller-to-customer distance
+(zip-code centroids from the 1,000,163-row Olist geolocation file), same-state flag, promised delivery window,
+approval delay, items, sellers, price, freight, weight, volume, purchase month and weekday, and seller and
+route late-rate history counted **only from orders delivered before this order was purchased** (a test checks
+this against a brute-force recount). Chronological split: train on 43,679 orders purchased before 2018 (5.6% late),
+test on 52,777 orders from Jan-Aug 2018 (7.7% late).
+
+| Model (test, Jan-Aug 2018) | PR-AUC | ROC-AUC | Top 10% riskiest orders: late share | Late orders caught |
+|---|---|---|---|---|
+| Seller late-rate history only | 0.078 | 0.51 | 7.0% | 367 of 4,078 (9%) |
+| Logistic regression | 0.098 | 0.60 | 9.6% | 509 (12.5%) |
+| **Gradient boosting** | **0.132** | **0.66** | **15.6% (2.0x the 7.7% base rate)** | **825 (20%)** |
+
+Strongest signals (permutation importance): distance, promised delivery window, purchase month, route history.
+The model is a ranking aid, not a precise forecaster: most late deliveries are not predictable from order data.
+
+**Caveat.** The data ends in October 2018, so only orders already delivered by then are included. The last test months (July-August 2018) therefore over-represent fast deliveries; read their rates and drift with that in mind.
+
+**Monitoring** (`results/monitoring_monthly.csv`, `results/dashboard.html`). Each month: actual vs predicted late
+rate (calibration gap), PR-AUC, share of late orders caught, and input drift (PSI) on shipment features.
+
+| Month | Actual late | Predicted | Gap | Max shipment-feature PSI |
+|---|---|---|---|---|
+| 2018-01 | 5.7% | 4.8% | +0.9 pts | 0.09 |
+| **2018-02** | **14.1%** | 5.2% | **+8.9 pts** | 0.18 |
+| **2018-03** | **19.0%** | 6.3% | **+12.7 pts** | 0.20 |
+| 2018-06 | 1.2% | 4.4% | -3.3 pts | 0.68 (approval delay) |
+| 2018-08 | 6.2% | 6.9% | -0.7 pts | 1.51 (promised window) |
+
+**Finding.** The Feb-Mar 2018 delivery surge did **not** trip the input-drift alarm (PSI stayed under 0.25): the
+orders looked normal, the delivery network did not. Only the calibration gap (outcomes vs forecast) caught it.
+Later months show the opposite: large input drift while late rates fell (the median promised window swung from 27 days for June orders to 13 days for August orders).
+So monitoring needs both signals; input drift alone would have missed the one month operations most needed.
+
+```bash
+bash fetch_data.sh
+python late_risk.py && pytest -q tests
+```

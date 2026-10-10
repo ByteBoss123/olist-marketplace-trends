@@ -1,0 +1,162 @@
+{
+  "orders_modeled": 96456,
+  "train_orders": 43679,
+  "test_orders": 52777,
+  "train_late_rate": 0.0562,
+  "test_late_rate": 0.0773,
+  "split": "train: purchased before 2018-01-01; test: Jan-Aug 2018",
+  "features": [
+    "distance_km",
+    "same_state",
+    "promised_days",
+    "approve_hours",
+    "purchase_dow",
+    "purchase_month",
+    "n_items",
+    "n_sellers",
+    "price",
+    "freight",
+    "freight_ratio",
+    "weight_g",
+    "vol_cm3",
+    "seller_prior_late",
+    "seller_prior_orders",
+    "route_prior_late"
+  ],
+  "test": {
+    "seller_history_only": {
+      "pr_auc": 0.078,
+      "roc_auc": 0.508,
+      "brier": 0.0723,
+      "top10pct": {
+        "precision": 0.07,
+        "late_caught": 367,
+        "late_total": 4078,
+        "recall": 0.09,
+        "flagged": 5277
+      }
+    },
+    "logistic_regression": {
+      "pr_auc": 0.098,
+      "roc_auc": 0.597,
+      "brier": 0.0749,
+      "top10pct": {
+        "precision": 0.096,
+        "late_caught": 509,
+        "late_total": 4078,
+        "recall": 0.125,
+        "flagged": 5277
+      }
+    },
+    "gradient_boosting": {
+      "pr_auc": 0.132,
+      "roc_auc": 0.661,
+      "brier": 0.0703,
+      "top10pct": {
+        "precision": 0.156,
+        "late_caught": 825,
+        "late_total": 4078,
+        "recall": 0.202,
+        "flagged": 5277
+      }
+    }
+  },
+  "permutation_importance_pr_auc_drop": {
+    "distance_km": 0.0275,
+    "promised_days": 0.0243,
+    "purchase_month": 0.0094,
+    "route_prior_late": 0.0059,
+    "same_state": 0.0027,
+    "freight": 0.0018
+  },
+  "monitoring": [
+    {
+      "month": "2018-01",
+      "orders": 7069,
+      "actual_late_rate": 0.057,
+      "predicted_late_rate": 0.0475,
+      "pr_auc": 0.098,
+      "top10_recall": 0.203,
+      "calibration_gap": 0.0095,
+      "max_feature_psi": 0.086,
+      "most_drifted_feature": "promised_days"
+    },
+    {
+      "month": "2018-02",
+      "orders": 6555,
+      "actual_late_rate": 0.1413,
+      "predicted_late_rate": 0.0524,
+      "pr_auc": 0.231,
+      "top10_recall": 0.194,
+      "calibration_gap": 0.0889,
+      "max_feature_psi": 0.18,
+      "most_drifted_feature": "approve_hours"
+    },
+    {
+      "month": "2018-03",
+      "orders": 7003,
+      "actual_late_rate": 0.1896,
+      "predicted_late_rate": 0.0625,
+      "pr_auc": 0.302,
+      "top10_recall": 0.191,
+      "calibration_gap": 0.1271,
+      "max_feature_psi": 0.199,
+      "most_drifted_feature": "freight"
+    },
+    {
+      "month": "2018-04",
+      "orders": 6798,
+      "actual_late_rate": 0.045,
+      "predicted_late_rate": 0.0822,
+      "pr_auc": 0.139,
+      "top10_recall": 0.382,
+      "calibration_gap": -0.0372,
+      "max_feature_psi": 0.308,
+      "most_drifted_feature": "approve_hours"
+    },
+    {
+      "month": "2018-05",
+      "orders": 6749,
+      "actual_late_rate": 0.0656,
+      "predicted_late_rate": 0.0553,
+      "pr_auc": 0.133,
+      "top10_recall": 0.257,
+      "calibration_gap": 0.0103,
+      "max_feature_psi": 0.607,
+      "most_drifted_feature": "approve_hours"
+    },
+    {
+      "month": "2018-06",
+      "orders": 6096,
+      "actual_late_rate": 0.0116,
+      "predicted_late_rate": 0.0442,
+      "pr_auc": 0.042,
+      "top10_recall": 0.423,
+      "calibration_gap": -0.0326,
+      "max_feature_psi": 0.678,
+      "most_drifted_feature": "approve_hours"
+    },
+    {
+      "month": "2018-07",
+      "orders": 6156,
+      "actual_late_rate": 0.0338,
+      "predicted_late_rate": 0.0675,
+      "pr_auc": 0.075,
+      "top10_recall": 0.26,
+      "calibration_gap": -0.0337,
+      "max_feature_psi": 0.478,
+      "most_drifted_feature": "promised_days"
+    },
+    {
+      "month": "2018-08",
+      "orders": 6351,
+      "actual_late_rate": 0.0619,
+      "predicted_late_rate": 0.0685,
+      "pr_auc": 0.089,
+      "top10_recall": 0.13,
+      "calibration_gap": -0.0066,
+      "max_feature_psi": 1.512,
+      "most_drifted_feature": "promised_days"
+    }
+  ]
+}

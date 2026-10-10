@@ -4,7 +4,7 @@
 set -euo pipefail
 mkdir -p data
 base=https://raw.githubusercontent.com/jorellano/E_commerce/ed9c8fb3bd5b8e365172bc613b2db2f755781717
-for f in olist_orders_dataset olist_order_items_dataset olist_order_reviews_dataset olist_order_payments_dataset \
+for f in olist_geolocation_dataset olist_orders_dataset olist_order_items_dataset olist_order_reviews_dataset olist_order_payments_dataset \
          olist_customers_dataset olist_sellers_dataset olist_products_dataset product_category_name_translation; do
   curl -fsSL "$base/$f.csv" -o "data/$f.csv"
 done
