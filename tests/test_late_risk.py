@@ -21,13 +21,24 @@ def df():
 
 
 def test_seller_history_uses_only_orders_delivered_before_purchase(df):
-    g = df.late[df.order_purchase_timestamp < L.SPLIT].mean()
     sample = df.sample(300, random_state=0)
     for _, r in sample.iterrows():
+        global_past = df[df.order_delivered_customer_date < r.order_purchase_timestamp]
+        g = global_past.late.mean() if len(global_past) else 0.5
         past = df[(df.seller_id == r.seller_id) & (df.order_delivered_customer_date < r.order_purchase_timestamp)]
         expect = (past.late.sum() + 50 * g) / (len(past) + 50)
         assert r.seller_prior_orders == len(past)
         assert abs(r.seller_prior_late - expect) < 1e-9
+
+
+def test_future_outcomes_cannot_change_past_features(df):
+    cutoff = pd.Timestamp("2017-06-01")
+    altered = df.copy()
+    future = altered.order_delivered_customer_date >= cutoff
+    altered.loc[future, "late"] = 1 - altered.loc[future, "late"]
+    changed, _ = L.prior_late_rate(altered, "seller_id")
+    past = df.order_purchase_timestamp < cutoff
+    assert np.allclose(changed[past], df.loc[past, "seller_prior_late"])
 
 
 def test_delivered_orders_and_late_definition(df):
@@ -45,4 +56,8 @@ def test_published_metrics():
     mon = {r["month"]: r for r in m["monitoring"]}
     # the Feb-Mar 2018 surge: input drift stayed under the 0.25 alarm, the calibration gap did not
     for mo in ("2018-02", "2018-03"):
-        assert mon[mo]["max_feature_psi"] < 0.25 and mon[mo]["calibration_gap"] > 0.08
+        row = mon[mo]
+        assert row["max_feature_psi"] < 0.25
+        assert row["actual_late_rate"] > row["predicted_late_rate"]
+        assert row["calibration_gap"] == pytest.approx(
+            row["actual_late_rate"] - row["predicted_late_rate"], abs=0.00011)

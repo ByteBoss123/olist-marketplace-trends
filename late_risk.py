@@ -78,7 +78,17 @@ def prior_late_rate(df, key, prior=50):
                       by=key, direction="backward", allow_exact_matches=False)
     m = m.set_index("index").sort_index()
     n, late = m.cum_n.fillna(0), m.cum_late.fillna(0)
-    g = df.late[df.order_purchase_timestamp < SPLIT].mean()
+    # The smoothing prior must also be available at the query time. A global
+    # training-period mean leaks future outcomes into early training rows.
+    global_events = ev[["t", "late"]].copy()
+    global_events["global_n"] = np.arange(1, len(global_events) + 1)
+    global_events["global_late"] = global_events.late.cumsum()
+    history = pd.merge_asof(q, global_events[["t", "global_n", "global_late"]],
+                            left_on="order_purchase_timestamp", right_on="t",
+                            direction="backward", allow_exact_matches=False)
+    history = history.set_index("index").sort_index()
+    # Fixed neutral prior before any outcomes exist, never learned from future data.
+    g = (history.global_late / history.global_n).fillna(0.5)
     return (late + prior * g) / (n + prior), n
 
 
@@ -117,7 +127,8 @@ def main():
     df["route"] = df.seller_state + ">" + df.customer_state
     df["route_prior_late"], _ = prior_late_rate(df, "route")
     df = df[df.order_purchase_timestamp < END]
-    tr, te = df[df.order_purchase_timestamp < SPLIT], df[df.order_purchase_timestamp >= SPLIT]
+    tr = df[(df.order_purchase_timestamp < SPLIT) & (df.order_delivered_customer_date < SPLIT)]
+    te = df[df.order_purchase_timestamp >= SPLIT]
     Xtr, Xte = tr[FEATURES].fillna(tr[FEATURES].median()), te[FEATURES].fillna(tr[FEATURES].median())
     ytr, yte = tr.late.to_numpy(), te.late.to_numpy()
 
@@ -167,7 +178,7 @@ def main():
 
     out = {"orders_modeled": len(df), "train_orders": len(tr), "test_orders": len(te),
            "train_late_rate": round(float(ytr.mean()), 4), "test_late_rate": round(float(yte.mean()), 4),
-           "split": "train: purchased before 2018-01-01; test: Jan-Aug 2018", "features": FEATURES,
+           "split": "train: purchased and delivered before 2018-01-01; test: Jan-Aug 2018", "features": FEATURES,
            "test": res, "permutation_importance_pr_auc_drop": top_imp, "monitoring": rows}
     (OUT / "late_risk_metrics.json").write_text(json.dumps(out, indent=2))
     dashboard(mon, res, top_imp)
