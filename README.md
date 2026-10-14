@@ -79,46 +79,69 @@ python validation/validate_warehouse.py
 python validation/validate.py
 ```
 
-## Late-delivery risk model and model monitoring (`late_risk.py`)
+## Late-delivery risk model and operations decision
 
-**Question.** When an order is approved, which orders will miss the delivery date promised to the customer, so
-operations can act (faster shipping, proactive customer message) before the delay happens?
+**Decision supported:** prioritize limited operations review capacity for orders at risk of missing their promised delivery date.
+See the generated [decision brief](results/decision_brief.md) for 5%, 10%, and 20% review-capacity tradeoffs and baseline comparisons.
 
-**Data and rules.** 96,456 delivered orders. Features known at approval time only: seller-to-customer distance
-(zip-code centroids from the 1,000,163-row Olist geolocation file), same-state flag, promised delivery window,
-approval delay, items, sellers, price, freight, weight, volume, purchase month and weekday, and seller and
-route late-rate history counted **only from orders delivered before this order was purchased** (a test checks
-this against a brute-force recount). Chronological split: train on 43,679 orders purchased before 2018 (5.6% late),
-test on 52,777 orders from Jan-Aug 2018 (7.7% late).
+### Timing corrections and rerun (October 14, 2026)
 
-| Model (test, Jan-Aug 2018) | PR-AUC | ROC-AUC | Top 10% riskiest orders: late share | Late orders caught |
-|---|---|---|---|---|
-| Seller late-rate history only | 0.078 | 0.51 | 7.0% | 367 of 4,078 (9%) |
-| Logistic regression | 0.098 | 0.60 | 9.6% | 509 (12.5%) |
-| **Gradient boosting** | **0.132** | **0.66** | **15.6% (2.0x the 7.7% base rate)** | **825 (20%)** |
+The previous implementation used the full training-period late rate to smooth historical seller/route rates.
+That exposed early training rows to future outcomes. The smoothing prior now uses only deliveries completed before each purchase;
+before any outcomes exist it uses a fixed neutral 0.5 prior. Training also excludes orders not delivered by the January 1 cutoff.
+A regression test changes future labels and verifies that earlier features remain unchanged.
 
-Strongest signals (permutation importance): distance, promised delivery window, purchase month, route history.
-The model is a ranking aid, not a precise forecaster: most late deliveries are not predictable from order data.
+Training: 41,183 orders purchased and delivered before 2018 (4.29% late).
+Test: 52,777 delivered orders purchased Jan–Aug 2018 (7.73% late).
+Features include distance, promised window, approval delay, shipment characteristics, and prior seller/route history.
+No delivery outcome is supplied as a prediction feature.
 
-**Caveat.** The data ends in October 2018, so only orders already delivered by then are included. The last test months (July-August 2018) therefore over-represent fast deliveries; read their rates and drift with that in mind.
+| Model | Test PR-AUC | Test ROC-AUC | Late share in top 10% | Late orders caught |
+|---|---:|---:|---:|---:|
+| Seller history | 0.072 | 0.471 | 6.6% | 346 (8.5%) |
+| Logistic regression | 0.131 | 0.662 | 14.7% | 777 (19.1%) |
+| Gradient boosting | 0.132 | 0.655 | 16.9% | 892 (21.9%) |
 
-**Monitoring** (`results/monitoring_monthly.csv`, `results/dashboard.html`). Each month: actual vs predicted late
-rate (calibration gap), PR-AUC, share of late orders caught, and input drift (PSI) on shipment features.
+Logistic regression is competitive on overall ranking quality. Gradient boosting captures more late orders at the illustrated
+10% review capacity, but that comparison on the test set is exploratory, not a separately validated model-selection result.
+The test set should not be reused for tuning a deployment threshold.
 
-| Month | Actual late | Predicted | Gap | Max shipment-feature PSI |
-|---|---|---|---|---|
-| 2018-01 | 5.7% | 4.8% | +0.9 pts | 0.09 |
-| **2018-02** | **14.1%** | 5.2% | **+8.9 pts** | 0.18 |
-| **2018-03** | **19.0%** | 6.3% | **+12.7 pts** | 0.20 |
-| 2018-06 | 1.2% | 4.4% | -3.3 pts | 0.68 (approval delay) |
-| 2018-08 | 6.2% | 6.9% | -0.7 pts | 1.51 (promised window) |
+### Monitoring
 
-**Finding.** The Feb-Mar 2018 delivery surge did **not** trip the input-drift alarm (PSI stayed under 0.25): the
-orders looked normal, the delivery network did not. Only the calibration gap (outcomes vs forecast) caught it.
-Later months show the opposite: large input drift while late rates fell (the median promised window swung from 27 days for June orders to 13 days for August orders).
-So monitoring needs both signals; input drift alone would have missed the one month operations most needed.
+| Month | Actual late | Predicted late | Calibration gap | Max feature PSI |
+|---|---:|---:|---:|---:|
+| January 2018 | 5.70% | 6.60% | -0.90 points | 0.128 |
+| February 2018 | 14.13% | 8.00% | +6.13 points | 0.182 |
+| March 2018 | 18.96% | 8.96% | +10.01 points | 0.199 |
+| June 2018 | 1.16% | 5.62% | -4.46 points | 0.661 |
+| August 2018 | 6.19% | 7.89% | -1.70 points | 1.463 |
+
+The February–March outcome deterioration would not trigger a PSI >0.25 input alarm.
+Monitor outcome calibration as well as input drift; neither signal alone establishes the cause.
+Full results: [metrics](results/late_risk_metrics.json), [monthly monitoring](results/monitoring_monthly.csv), and `results/dashboard.html`.
+
+### Scope and limits
+
+Real historical marketplace data; personal project, not a live supply-chain deployment.
+Only delivered orders are modeled, so unresolved/cancelled orders are excluded and late test months have end-of-dataset censoring.
+Dates in the classification label use calendar-day comparison; this differs from the warehouse's timestamp comparison.
+The 10% queue is a retrospective whole-cohort ranking, not an online daily policy. No prevented delays, cost savings, or adoption are claimed.
+
+### Reproduce
 
 ```bash
+pip install -r requirements.txt
 bash fetch_data.sh
-python late_risk.py && pytest -q tests
+OMP_NUM_THREADS=2 python late_risk.py
+python -m pytest -q
+python decision_brief.py
+python build_warehouse.py
+python run.py
+python validation/validate_warehouse.py
+python validation/validate.py
 ```
+
+Review execution: 4 model/data tests passed; warehouse integrity checks reported zero violations;
+independent warehouse and descriptive-analysis validators reported zero mismatches.
+
+Per-order scores are generated locally by `late_risk.py` and excluded from version control; rerun it before `decision_brief.py`. Summary metrics and the decision brief remain committed.

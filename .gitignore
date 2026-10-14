@@ -1,2 +1,5 @@
 data/
 *.duckdb
+__pycache__/
+.pytest_cache/
+results/test_order_scores.csv
