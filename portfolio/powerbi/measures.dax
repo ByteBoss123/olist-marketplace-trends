@@ -1,0 +1,44 @@
+// Draft: create each measure separately in Power BI Desktop.
+
+Scoped Orders =
+VAR SelectedOrderIDs = VALUES(Items[order_id])
+VAR HasItemDimensionFilter = ISCROSSFILTERED(Sellers) || ISCROSSFILTERED(Products)
+RETURN IF(HasItemDimensionFilter,
+    CALCULATE(COUNTROWS(Orders), KEEPFILTERS(TREATAS(SelectedOrderIDs, Orders[order_id]))),
+    COUNTROWS(Orders))
+
+Eligible Delivered Orders =
+VAR SelectedOrderIDs = VALUES(Items[order_id])
+VAR HasItemDimensionFilter = ISCROSSFILTERED(Sellers) || ISCROSSFILTERED(Products)
+RETURN IF(HasItemDimensionFilter,
+    CALCULATE(COUNT(Orders[on_time]), KEEPFILTERS(TREATAS(SelectedOrderIDs, Orders[order_id]))),
+    COUNT(Orders[on_time]))
+
+On-time Orders =
+VAR SelectedOrderIDs = VALUES(Items[order_id])
+VAR HasItemDimensionFilter = ISCROSSFILTERED(Sellers) || ISCROSSFILTERED(Products)
+RETURN IF(HasItemDimensionFilter,
+    CALCULATE(SUM(Orders[on_time]), KEEPFILTERS(TREATAS(SelectedOrderIDs, Orders[order_id]))),
+    SUM(Orders[on_time]))
+
+Average Review =
+VAR SelectedOrderIDs = VALUES(Items[order_id])
+VAR HasItemDimensionFilter = ISCROSSFILTERED(Sellers) || ISCROSSFILTERED(Products)
+RETURN IF(HasItemDimensionFilter,
+    CALCULATE(AVERAGE(Orders[review_score]), KEEPFILTERS(TREATAS(SelectedOrderIDs, Orders[order_id]))),
+    AVERAGE(Orders[review_score]))
+
+Reviewed Eligible Orders =
+VAR SelectedOrderIDs = VALUES(Items[order_id])
+VAR HasItemDimensionFilter = ISCROSSFILTERED(Sellers) || ISCROSSFILTERED(Products)
+RETURN IF(HasItemDimensionFilter,
+    CALCULATE(CALCULATE(COUNT(Orders[review_score]), FILTER(Orders, NOT ISBLANK(Orders[on_time]))), KEEPFILTERS(TREATAS(SelectedOrderIDs, Orders[order_id]))),
+    CALCULATE(COUNT(Orders[review_score]), FILTER(Orders, NOT ISBLANK(Orders[on_time]))))
+
+On-time Rate = DIVIDE([On-time Orders], [Eligible Delivered Orders])
+
+Late Orders = [Eligible Delivered Orders] - [On-time Orders]
+
+Late Rate = DIVIDE([Late Orders], [Eligible Delivered Orders])
+
+Item Value BRL = SUM(Items[price])
