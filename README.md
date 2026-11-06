@@ -44,6 +44,24 @@ The same Olist star schema runs in **Amazon Redshift Serverless** (us-east-1, sc
 Order-item on-time rate in Redshift: 101,481 of 112,650 items = **90.09%** (items on non-delivered orders count as
 not on time). The DuckDB build here reports the delivered-order rate instead (91.9%); both are correct for their definition.
 
+## Sort-key benchmark (`benchmark/sort_key_benchmark.py`)
+Why the Redshift fact tables use `SORTKEY` on the purchase date: when rows are stored in date order,
+each storage block covers a narrow date range, so a month filter can skip blocks by their min/max
+statistics. The script loads `fact_order_item` (112,650 rows) twice, in arrival order (by order id) and
+sorted by date, in 2,048-row groups (56 groups, so skipping can happen at this size), then runs the same
+month-range KPI query (orders, revenue, freight) for each of the 20 full months Jan 2017 to Aug 2018,
+50 timed runs per month per layout after 5 warm-ups. Both layouts return the same answers.
+
+| Measure (`benchmark/sort_key_results.json`) | Arrival order | Sorted by date |
+|---|---|---|
+| Row groups whose date range overlaps the month (median) | 56 of 56 | 4 of 56 |
+| Median query time | 2.98 ms | 2.06 ms |
+
+Median latency fell **31.0%**, and the sorted layout was faster in all 20 months. Two reruns gave
+35.4% and 34.9%; the committed result is the lowest of the three. This is a local DuckDB measurement of
+the same min/max skipping Redshift uses, not a Redshift benchmark, and absolute times are milliseconds
+because the table is small.
+
 ## Definitions
 - **Delivered order:** `order_status = 'delivered'` with a customer delivery timestamp (96,470 orders).
 - **Late:** delivered to the customer after `order_estimated_delivery_date`.
@@ -77,6 +95,7 @@ python build_warehouse.py
 python run.py
 python validation/validate_warehouse.py
 python validation/validate.py
+python benchmark/sort_key_benchmark.py   # optional, ~1 minute
 ```
 
 ## Late-delivery risk model and model monitoring (`late_risk.py`)

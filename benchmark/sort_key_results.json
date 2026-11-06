@@ -1,0 +1,204 @@
+{
+ "rows": 112650,
+ "row_group_size": 2048,
+ "row_groups": {
+  "unsorted": 56,
+  "sorted": 56
+ },
+ "months": 20,
+ "runs_per_query": 50,
+ "duckdb": "2.0.0",
+ "median_query_ms": {
+  "unsorted": 2.98,
+  "sorted": 2.055
+ },
+ "median_latency_reduction_pct": 31.0,
+ "median_of_monthly_speedups_pct": 33.0,
+ "months_faster_sorted": 20,
+ "median_rowgroups_overlapping": {
+  "unsorted": 56.0,
+  "sorted": 4.0
+ },
+ "per_month": [
+  {
+   "month": "2017-01-01",
+   "rows": 789,
+   "median_ms_unsorted": 2.476,
+   "median_ms_sorted": 1.35,
+   "speedup_pct": 45.5,
+   "rowgroups_overlapping_unsorted": 55,
+   "rowgroups_overlapping_sorted": 1
+  },
+  {
+   "month": "2017-02-01",
+   "rows": 1733,
+   "median_ms_unsorted": 2.527,
+   "median_ms_sorted": 1.63,
+   "speedup_pct": 35.5,
+   "rowgroups_overlapping_unsorted": 55,
+   "rowgroups_overlapping_sorted": 2
+  },
+  {
+   "month": "2017-03-01",
+   "rows": 2641,
+   "median_ms_unsorted": 2.673,
+   "median_ms_sorted": 1.723,
+   "speedup_pct": 35.5,
+   "rowgroups_overlapping_unsorted": 55,
+   "rowgroups_overlapping_sorted": 3
+  },
+  {
+   "month": "2017-04-01",
+   "rows": 2391,
+   "median_ms_unsorted": 2.592,
+   "median_ms_sorted": 1.643,
+   "speedup_pct": 36.6,
+   "rowgroups_overlapping_unsorted": 55,
+   "rowgroups_overlapping_sorted": 2
+  },
+  {
+   "month": "2017-05-01",
+   "rows": 3660,
+   "median_ms_unsorted": 2.673,
+   "median_ms_sorted": 1.712,
+   "speedup_pct": 36.0,
+   "rowgroups_overlapping_unsorted": 55,
+   "rowgroups_overlapping_sorted": 3
+  },
+  {
+   "month": "2017-06-01",
+   "rows": 3217,
+   "median_ms_unsorted": 2.64,
+   "median_ms_sorted": 1.71,
+   "speedup_pct": 35.2,
+   "rowgroups_overlapping_unsorted": 55,
+   "rowgroups_overlapping_sorted": 3
+  },
+  {
+   "month": "2017-07-01",
+   "rows": 3969,
+   "median_ms_unsorted": 2.688,
+   "median_ms_sorted": 1.724,
+   "speedup_pct": 35.9,
+   "rowgroups_overlapping_unsorted": 55,
+   "rowgroups_overlapping_sorted": 3
+  },
+  {
+   "month": "2017-08-01",
+   "rows": 4293,
+   "median_ms_unsorted": 2.716,
+   "median_ms_sorted": 1.758,
+   "speedup_pct": 35.3,
+   "rowgroups_overlapping_unsorted": 56,
+   "rowgroups_overlapping_sorted": 3
+  },
+  {
+   "month": "2017-09-01",
+   "rows": 4243,
+   "median_ms_unsorted": 2.989,
+   "median_ms_sorted": 2.049,
+   "speedup_pct": 31.5,
+   "rowgroups_overlapping_unsorted": 56,
+   "rowgroups_overlapping_sorted": 4
+  },
+  {
+   "month": "2017-10-01",
+   "rows": 4568,
+   "median_ms_unsorted": 3.301,
+   "median_ms_sorted": 2.199,
+   "speedup_pct": 33.4,
+   "rowgroups_overlapping_unsorted": 56,
+   "rowgroups_overlapping_sorted": 3
+  },
+  {
+   "month": "2017-11-01",
+   "rows": 7451,
+   "median_ms_unsorted": 3.164,
+   "median_ms_sorted": 2.137,
+   "speedup_pct": 32.5,
+   "rowgroups_overlapping_unsorted": 56,
+   "rowgroups_overlapping_sorted": 5
+  },
+  {
+   "month": "2017-12-01",
+   "rows": 5624,
+   "median_ms_unsorted": 3.273,
+   "median_ms_sorted": 2.136,
+   "speedup_pct": 34.7,
+   "rowgroups_overlapping_unsorted": 56,
+   "rowgroups_overlapping_sorted": 5
+  },
+  {
+   "month": "2018-01-01",
+   "rows": 7220,
+   "median_ms_unsorted": 2.971,
+   "median_ms_sorted": 2.031,
+   "speedup_pct": 31.7,
+   "rowgroups_overlapping_unsorted": 56,
+   "rowgroups_overlapping_sorted": 5
+  },
+  {
+   "month": "2018-02-01",
+   "rows": 6694,
+   "median_ms_unsorted": 3.154,
+   "median_ms_sorted": 2.126,
+   "speedup_pct": 32.6,
+   "rowgroups_overlapping_unsorted": 56,
+   "rowgroups_overlapping_sorted": 4
+  },
+  {
+   "month": "2018-03-01",
+   "rows": 7188,
+   "median_ms_unsorted": 2.966,
+   "median_ms_sorted": 2.062,
+   "speedup_pct": 30.5,
+   "rowgroups_overlapping_unsorted": 56,
+   "rowgroups_overlapping_sorted": 5
+  },
+  {
+   "month": "2018-04-01",
+   "rows": 6934,
+   "median_ms_unsorted": 3.365,
+   "median_ms_sorted": 2.364,
+   "speedup_pct": 29.8,
+   "rowgroups_overlapping_unsorted": 56,
+   "rowgroups_overlapping_sorted": 5
+  },
+  {
+   "month": "2018-05-01",
+   "rows": 6853,
+   "median_ms_unsorted": 3.118,
+   "median_ms_sorted": 2.212,
+   "speedup_pct": 29.1,
+   "rowgroups_overlapping_unsorted": 56,
+   "rowgroups_overlapping_sorted": 5
+  },
+  {
+   "month": "2018-06-01",
+   "rows": 6160,
+   "median_ms_unsorted": 3.069,
+   "median_ms_sorted": 2.172,
+   "speedup_pct": 29.2,
+   "rowgroups_overlapping_unsorted": 56,
+   "rowgroups_overlapping_sorted": 5
+  },
+  {
+   "month": "2018-07-01",
+   "rows": 6273,
+   "median_ms_unsorted": 3.06,
+   "median_ms_sorted": 2.123,
+   "speedup_pct": 30.6,
+   "rowgroups_overlapping_unsorted": 56,
+   "rowgroups_overlapping_sorted": 4
+  },
+  {
+   "month": "2018-08-01",
+   "rows": 6452,
+   "median_ms_unsorted": 3.094,
+   "median_ms_sorted": 2.181,
+   "speedup_pct": 29.5,
+   "rowgroups_overlapping_unsorted": 55,
+   "rowgroups_overlapping_sorted": 5
+  }
+ ]
+}
