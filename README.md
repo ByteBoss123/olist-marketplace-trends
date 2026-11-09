@@ -23,6 +23,7 @@ capacity and manage sellers before peak periods.
 - Linked late delivery to satisfaction: late orders average a **2.54** review vs **4.28** on time, with **6.9x** more 1-star reviews (46.7% vs 6.8%).
 - Category view across 74 product categories: health & beauty leads item revenue ($1.26M); office furniture has the lowest average review among the 27 major categories (500+ orders): 3.48 vs a 4.02 marketplace average.
 - Independent pandas checks: **0 mismatches** on the warehouse and the trend analysis.
+- Segmented the 1,271 sellers with 10+ orders into **3 K-means clusters**: 168 sellers (13%) deliver on time only 79.4% of the time and average a 3.41 review, while the top cluster (710 sellers) holds 66.5% of segmented item revenue at 94.4% on time.
 
 ## Amazon Redshift deployment (verified 2026-09-28)
 The same Olist star schema runs in **Amazon Redshift Serverless** (us-east-1, schema `vendorpulse`, tables created
@@ -89,13 +90,14 @@ of review scores in the descriptive sense, not a causal estimate.
 
 ## Run
 ```bash
-pip install duckdb pandas
+pip install duckdb pandas scikit-learn
 ./fetch_data.sh
 python build_warehouse.py
 python run.py
 python validation/validate_warehouse.py
 python validation/validate.py
 python benchmark/sort_key_benchmark.py   # optional, ~1 minute
+python seller_segments.py               # K-means seller segments
 ```
 
 ## Late-delivery risk model and model monitoring (`late_risk.py`)
@@ -141,3 +143,24 @@ So monitoring needs both signals; input drift alone would have missed the one mo
 bash fetch_data.sh
 python late_risk.py && pytest -q tests
 ```
+
+## Seller segmentation (`seller_segments.py`)
+Which sellers need operational attention? K-means on the warehouse's seller KPIs.
+
+- **Population:** the 1,271 of 3,095 sellers with at least 10 orders, so on-time and review rates are not driven by one or two orders.
+- **Features (standardized):** log orders, log average item revenue per order, on-time delivery rate, average review score, freight as a share of item price.
+- **Choosing k:** K-means for k = 2 to 8 (20 initializations each); k = 3 has the highest silhouette score.
+- **Stability:** refitting k = 3 with 10 different seeds gives an adjusted Rand index of at least 0.972 against the reference fit, so the segments are not a seed artifact.
+
+| Segment | Sellers | Median orders | Share of segment revenue | On-time rate | Avg review | Median freight / price |
+|---|---|---|---|---|---|---|
+| Core reliable sellers | 710 | 29 | 66.5% | 94.4% | 4.19 | 15.6% |
+| Freight-heavy sellers | 393 | 46 | 26.1% | 93.4% | 4.09 | 34.6% |
+| At-risk sellers | 168 | 18 | 7.5% | 79.4% | 3.41 | 20.0% |
+
+(`results/seller_segments.json`; per-seller labels in `results/seller_segments.csv`.)
+
+**Limits.** The best silhouette is 0.236, so the clusters overlap: sellers sit on a continuum and the segments are a practical
+grouping for prioritizing, not sharply separated types. The at-risk segment pairs late delivery with low reviews, the same
+association shown in the trend analysis; it is descriptive, not causal. Segment names are my labels for the cluster profiles.
+`tests/test_seller_segments.py` checks the population filter, reproducibility and seed stability.

@@ -1,0 +1,56 @@
+{
+  "sellers_total": 3095,
+  "sellers_segmented": 1271,
+  "min_orders": 10,
+  "features": [
+    "log_orders",
+    "log_avg_order_revenue",
+    "on_time_rate",
+    "avg_review",
+    "freight_share"
+  ],
+  "silhouette_by_k": {
+    "2": 0.2119,
+    "3": 0.2355,
+    "4": 0.2227,
+    "5": 0.212,
+    "6": 0.2113,
+    "7": 0.214,
+    "8": 0.209
+  },
+  "best_k": 3,
+  "stability_ari_min": 0.9723,
+  "stability_ari_mean": 0.9809,
+  "segments": [
+    {
+      "segment": 0,
+      "sellers": 710,
+      "median_orders": 29.0,
+      "revenue": 8181945.97,
+      "on_time_rate": 0.944,
+      "avg_review": 4.1863,
+      "freight_share": 0.156,
+      "revenue_share": 0.6645
+    },
+    {
+      "segment": 1,
+      "sellers": 393,
+      "median_orders": 46.0,
+      "revenue": 3212114.55,
+      "on_time_rate": 0.9337,
+      "avg_review": 4.092,
+      "freight_share": 0.3455,
+      "revenue_share": 0.2609
+    },
+    {
+      "segment": 2,
+      "sellers": 168,
+      "median_orders": 18.0,
+      "revenue": 919045.7,
+      "on_time_rate": 0.7936,
+      "avg_review": 3.4078,
+      "freight_share": 0.2002,
+      "revenue_share": 0.0746
+    }
+  ]
+}
